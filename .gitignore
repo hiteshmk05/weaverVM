@@ -1,0 +1,7 @@
+build/
+src/build/
+
+.vscode/
+.vs/
+
+temp*
