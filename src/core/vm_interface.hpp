@@ -4,7 +4,7 @@
 #include <string>
 #include <array>
 
-namespace mkvm{
+namespace weaver{
     inline constexpr int DISPLAY_WIDTH = 64;
     inline constexpr int DISPLAY_HEIGHT = 32;
 
@@ -23,7 +23,7 @@ namespace mkvm{
             virtual ~VirtualMachine() = default;
         
         protected:
-            DisplayBuffer display{};
+            DisplayBuffer display_buffer{};
             bool display_dirty = false; 
     };
-} // namespace mkvm 
+} // namespace weaver 

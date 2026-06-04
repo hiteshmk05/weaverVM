@@ -1,7 +1,11 @@
 build/
 src/build/
+vcpkg_installed/
 
 .vscode/
 .vs/
 
 temp*
+*.txt
+
+claude.md

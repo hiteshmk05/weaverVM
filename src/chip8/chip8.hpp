@@ -4,11 +4,11 @@
 #include <string>
 #include <array>
 
-#include "src/core/vm_interface.hpp"
+#include "core/vm_interface.hpp"
 
-namespace mkvm::chip8 {
+namespace weaver::chip8 {
 
-class Chip8 final : public mkvm::VirtualMachine{
+class Chip8 final : public weaver::VirtualMachine{
     public: 
         Chip8();
 
@@ -17,22 +17,29 @@ class Chip8 final : public mkvm::VirtualMachine{
         void updateTimers() override;
         void keyDown(uint8_t key) override;
         void keyUp(uint8_t key) override;
-        const mkvm::DisplayBuffer& getDisplay() const override;
+        const weaver::DisplayBuffer& getDisplay() const override;
         bool displayChanged() const override;
         void reset() override;
 
     private:
 
-        uint16_t fetch();
-        void execute(uint16_t opcode);
-
-        // CPU registers
         std::array<uint8_t,4096> memory{};
-        std::array<uint8_t,16> V{};
+        std::array<uint8_t,16> V{};             // registers
         std::array<uint16_t,16> stack{};
-        uint16_t PC = 0x200;
-        uint16_t I  = 0;
-        uint8_t  SP = 0;
+        uint16_t PC = 0x200;                    // program counter
+        uint16_t I  = 0;                        
+        uint8_t  SP = 0;                        // stack pointer
+        uint8_t DT = 0;                         // delay timer
+        uint8_t ST = 0;                         // sound timer
+
+        struct DecodedOp {
+            uint8_t type;
+            uint8_t x;
+            uint8_t y;
+            uint8_t n;
+            uint8_t nn;
+            uint8_t nnn;
+        };
 
         static constexpr std::array<uint8_t, 80> FONT = {
             0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -53,8 +60,12 @@ class Chip8 final : public mkvm::VirtualMachine{
             0xF0, 0x80, 0xF0, 0x80, 0x80  // F
         };
 
+        uint16_t fetch();
+        DecodedOp decode(uint16_t opcode);
+        void execute(uint16_t opcode);
+
 
 };
 
-} //namespace mkvm::chip8
+} //namespace weaver::chip8
 

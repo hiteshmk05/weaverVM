@@ -1,5 +1,5 @@
 {
-    "name":"retro-vm",
+    "name":"weaver-vm",
     "version":"1.0.0",
     "dependencies":[
         "raylib"
