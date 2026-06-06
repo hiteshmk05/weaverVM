@@ -3,11 +3,14 @@
 #include <fstream>
 #include <stdexcept>
 #include <algorithm>
+#include <cstdint>
 
 namespace weaver::chip8 {
 
 Chip8::Chip8(){
+    screen.init("CHIP-8", 10);
     reset();
+    init_tables();
 }
 
 void Chip8::reset(){
@@ -19,9 +22,6 @@ void Chip8::reset(){
     SP = 0;
     DT = 0;
     ST = 0;
-
-    display_buffer.fill(0);
-    display_dirty = false;
 
     std::copy(FONT.begin(), FONT.end(), memory.begin() + 0x050);
 }
@@ -90,7 +90,9 @@ void Chip8::init_tables() {
 }
 
 void Chip8::cycle(){
-
+    BeginDrawing();
+    ClearBackground(BLACK);
+    EndDrawing();
 }
 
 void Chip8::loadROM(const std::string& path){
@@ -102,8 +104,6 @@ void Chip8::execute(uint16_t opcode){
 }
 
 void Chip8::dispatch_0(uint16_t op){
-    if      (op == 0x00E0) { display_buffer.fill(0); display_dirty = true; }
-    else if (op == 0x00EE) { PC = stack[--SP]; }
 }
 
 void Chip8::dispatch_8(uint16_t op){ table_8[op & 0x000F](op); }
@@ -114,9 +114,34 @@ void Chip8::dispatch_F(uint16_t op){ table_F[op & 0x00FF](op); }
 // Primary opcodes
 // ---------------------------------------------------------------------------
 
-void Chip8::JP(uint16_t op)        { PC = op & 0x0FFF; }
-void Chip8::CALL(uint16_t op)      {}
-void Chip8::SE_VX_KK(uint16_t op)  {}
+void Chip8::JP(uint16_t op) { 
+    PC = op & 0x0FFF; 
+}
+
+/**
+ * function call 
+ * saves the return address and pushes the current PC onto the stack 
+ * sets the PC to the address present in the lower bits (NNN)
+ */
+void Chip8::CALL(uint16_t op) {
+    stack[SP] = PC;
+    SP++;
+    PC = op & 0x0FFF;
+}
+
+/**
+ * skip if equal
+ * compares the register Vx against the value KK;
+ * if they are equal it skips the next instruction by adding 2 to PC
+ */
+void Chip8::SE_VX_KK(uint16_t op) {
+    uint8_t x = (op >> 8) & 0xF;
+    uint8_t kk = op & 0x00FF;
+
+    if(V[x] == kk) PC += 2;
+}
+
+
 void Chip8::SNE_VX_KK(uint16_t op) {}
 void Chip8::SE_VX_VY(uint16_t op)  {}
 void Chip8::LD_VX_KK(uint16_t op)  {}
@@ -174,8 +199,6 @@ void Chip8::updateTimers() {
 void Chip8::keyDown(uint8_t key) {}
 void Chip8::keyUp(uint8_t key)   {}
 
-const weaver::DisplayBuffer& Chip8::getDisplay() const { return display_buffer; }
-bool Chip8::displayChanged() const                     { return display_dirty;  }
 
 // ---------------------------------------------------------------------------
 // Internal helpers

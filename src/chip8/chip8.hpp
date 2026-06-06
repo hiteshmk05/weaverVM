@@ -20,8 +20,6 @@ class Chip8 final : public weaver::VirtualMachine{
         void updateTimers() override;
         void keyDown(uint8_t key) override;
         void keyUp(uint8_t key) override;
-        const weaver::DisplayBuffer& getDisplay() const override;
-        bool displayChanged() const override;
         void reset() override;
 
     private:
