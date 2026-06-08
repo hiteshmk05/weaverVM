@@ -13,7 +13,7 @@ void  weaver::display::Display::render(const weaver::DisplayBuffer& buffer){
 
     for(int row = 0; row < DISPLAY_HEIGHT; row++){
         for(int col = 0; col < DISPLAY_WIDTH; col++){
-            if(buffer[row * DISPLAY_HEIGHT + col]){
+            if(buffer[row * DISPLAY_WIDTH + col]){
                 DrawRectangle(col * scale, row * scale, scale, scale, WHITE);
             }
         }

@@ -4,6 +4,7 @@ vcpkg_installed/
 
 .vscode/
 .vs/
+.claude/
 
 temp*
 *.txt

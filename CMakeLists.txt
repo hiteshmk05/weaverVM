@@ -12,6 +12,7 @@ add_executable(weaver-vm
     src/main.cpp
     src/chip8/chip8.cpp
     src/display/display.cpp
+    src/input/input.cpp
 )
 
 target_include_directories(weaver-vm

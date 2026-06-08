@@ -7,9 +7,24 @@
 #include <unordered_map>
 
 #include "core/vm_interface.hpp"
+#include "input/input.hpp"
 
 
 namespace weaver::chip8 {
+
+// Maps a physical key to the CHIP-8 hex keypad value (0x0-0xF) it represents,
+// following the conventional 1234/QWER/ASDF/ZXCV -> 123C/456D/789E/A0BF layout.
+struct KeyMapping {
+    input::PhysicalKey physical;
+    uint8_t chip8Key;
+};
+
+inline constexpr std::array<KeyMapping, 16> KEYMAP = {{
+    {input::PhysicalKey::One,   0x1}, {input::PhysicalKey::Two, 0x2}, {input::PhysicalKey::Three, 0x3}, {input::PhysicalKey::Four, 0xC},
+    {input::PhysicalKey::Q,     0x4}, {input::PhysicalKey::W,   0x5}, {input::PhysicalKey::E,     0x6}, {input::PhysicalKey::R,    0xD},
+    {input::PhysicalKey::A,     0x7}, {input::PhysicalKey::S,   0x8}, {input::PhysicalKey::D,     0x9}, {input::PhysicalKey::F,    0xE},
+    {input::PhysicalKey::Z,     0xA}, {input::PhysicalKey::X,   0x0}, {input::PhysicalKey::C,     0xB}, {input::PhysicalKey::V,    0xF},
+}};
 
 class Chip8 final : public weaver::VirtualMachine{
     public:
@@ -32,6 +47,8 @@ class Chip8 final : public weaver::VirtualMachine{
         uint8_t  SP = 0;                        // stack pointer
         uint8_t DT = 0;                         // delay timer
         uint8_t ST = 0;                         // sound timer
+        std::array<bool,16> keys{};             // hex keypad state (0x0-0xF)
+        DisplayBuffer displayBuffer{};          // 64x32 monochrome pixel buffer
 
         struct DecodedOp {
             uint8_t type;
