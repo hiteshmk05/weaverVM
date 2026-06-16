@@ -3,7 +3,9 @@
 #include <cstdint>
 #include <array>
 
-#include "raylib.h"
+struct SDL_Window;
+struct SDL_Renderer;
+struct SDL_Texture;
 
 namespace weaver{
     inline constexpr int DISPLAY_WIDTH = 64;
@@ -15,13 +17,19 @@ namespace weaver{
         class Display {
 
         public:
+            ~Display();
+
             void init(const char* title, int scale);
             void render(const DisplayBuffer& buffer);
             bool shouldClose();
             void close();
 
         private:
-            int scale;
+            int scale = 1;
+            bool quit = false;
+            SDL_Window* window = nullptr;
+            SDL_Renderer* renderer = nullptr;
+            SDL_Texture* texture = nullptr;
         };
     }
 }

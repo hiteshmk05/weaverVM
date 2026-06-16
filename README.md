@@ -19,9 +19,8 @@ Built around a clean abstract VM interface so each emulated system is a self-con
 ## Tech Stack
 
 - **Language** — C++20
-- **Rendering** — raylib (via vcpkg)
+- **Rendering** — SDL2
 - **Build system** — CMake 3.20+ with Ninja and CMakePresets
-- **Package manager** — vcpkg
 
 ---
 
@@ -30,12 +29,32 @@ Built around a clean abstract VM interface so each emulated system is a self-con
 - CMake 3.20 or newer
 - Ninja build system
 - A C++20 compiler (GCC 12+, Clang 14+, or MSVC 2022+)
-- [vcpkg](https://github.com/microsoft/vcpkg) with `VCPKG_ROOT` set in your environment
+- SDL2 development libraries
 
-Install raylib through vcpkg (handled automatically via `vcpkg.json` manifest):
+### Installing SDL2
+
+**Windows (MSYS2):**
 
 ```
-vcpkg install
+pacman -S mingw-w64-ucrt-x86_64-SDL2
+```
+
+**Linux (Debian/Ubuntu):**
+
+```
+sudo apt install libsdl2-dev
+```
+
+**Linux (Arch):**
+
+```
+sudo pacman -S sdl2
+```
+
+**macOS:**
+
+```
+brew install sdl2
 ```
 
 ---
@@ -59,6 +78,17 @@ cmake --build build --clean-first
 
 ---
 
+## Running
+
+Place ROM files in the `roms/` directory, then run from the build folder:
+
+```
+cd build
+./weaver-vm
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -69,4 +99,10 @@ src/
   chip8/
     chip8.hpp           — CHIP-8 emulator declaration
     chip8.cpp           — CHIP-8 emulator implementation
+  display/
+    display.hpp         — SDL2 display wrapper
+    display.cpp         — window creation, texture rendering
+  input/
+    input.hpp           — backend-neutral input abstraction
+    input.cpp           — SDL2 keyboard state mapping
 ```

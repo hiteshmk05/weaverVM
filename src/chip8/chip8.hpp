@@ -20,10 +20,10 @@ struct KeyMapping {
 };
 
 inline constexpr std::array<KeyMapping, 16> KEYMAP = {{
-    {input::PhysicalKey::One,   0x1}, {input::PhysicalKey::Two, 0x2}, {input::PhysicalKey::Three, 0x3}, {input::PhysicalKey::Four, 0xC},
-    {input::PhysicalKey::Q,     0x4}, {input::PhysicalKey::W,   0x5}, {input::PhysicalKey::E,     0x6}, {input::PhysicalKey::R,    0xD},
-    {input::PhysicalKey::A,     0x7}, {input::PhysicalKey::S,   0x8}, {input::PhysicalKey::D,     0x9}, {input::PhysicalKey::F,    0xE},
-    {input::PhysicalKey::Z,     0xA}, {input::PhysicalKey::X,   0x0}, {input::PhysicalKey::C,     0xB}, {input::PhysicalKey::V,    0xF},
+    {input::PhysicalKey::One, 0x1}, {input::PhysicalKey::Two, 0x2}, {input::PhysicalKey::Three, 0x3}, {input::PhysicalKey::Four, 0xC},
+    {input::PhysicalKey::Q, 0x4}, {input::PhysicalKey::W, 0x5}, {input::PhysicalKey::E, 0x6}, {input::PhysicalKey::R, 0xD},
+    {input::PhysicalKey::A, 0x7}, {input::PhysicalKey::S, 0x8}, {input::PhysicalKey::D, 0x9}, {input::PhysicalKey::F, 0xE},
+    {input::PhysicalKey::Z, 0xA}, {input::PhysicalKey::X, 0x0}, {input::PhysicalKey::C, 0xB}, {input::PhysicalKey::V, 0xF},
 }};
 
 class Chip8 final : public weaver::VirtualMachine{
@@ -81,6 +81,7 @@ class Chip8 final : public weaver::VirtualMachine{
         using opcodeHandler = std::function<void(uint16_t)>;
 
         std::array<opcodeHandler, 16> table_main;
+        std::unordered_map<uint8_t, opcodeHandler> table_0;
         std::array<opcodeHandler, 16> table_8;
         std::unordered_map<uint8_t, opcodeHandler> table_E;
         std::unordered_map<uint8_t, opcodeHandler> table_F;
@@ -108,6 +109,10 @@ class Chip8 final : public weaver::VirtualMachine{
         void JP_V0(uint16_t op);
         void RND(uint16_t op);
         void DRW(uint16_t op);
+
+        // group 0
+        void CLS(uint16_t op);
+        void RET(uint16_t op);
 
         // group 8
         void LD_VX_VY(uint16_t op);

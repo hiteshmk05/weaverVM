@@ -30,9 +30,9 @@ void Chip8::reset(){
 }
 
 void Chip8::init_tables() {
-    // ----------------------------------------------------------
+
     // table_main — top nibble (op >> 12)
-    // ----------------------------------------------------------
+
     table_main[0x0] = [this](uint16_t op){ dispatch_0(op); };
     table_main[0x1] = [this](uint16_t op){ JP(op); };
     table_main[0x2] = [this](uint16_t op){ CALL(op); };
@@ -50,9 +50,12 @@ void Chip8::init_tables() {
     table_main[0xE] = [this](uint16_t op){ dispatch_E(op); };
     table_main[0xF] = [this](uint16_t op){ dispatch_F(op); };
 
-    // ----------------------------------------------------------
+
+
+    table_0[0xE0] = [this](uint16_t op){ CLS(op); };           // CLS
+    table_0[0xEE] = [this](uint16_t op){ RET(op); };            // RET
+
     // table_8 — last nibble (op & 0x000F)
-    // ----------------------------------------------------------
     auto noop = [](uint16_t){};
 
     table_8[0x0] = [this](uint16_t op){ LD_VX_VY(op); };
@@ -72,15 +75,11 @@ void Chip8::init_tables() {
     table_8[0xE] = [this](uint16_t op){ SHL(op); };
     table_8[0xF] = noop;
 
-    // ----------------------------------------------------------
     // table_E — lower byte (op & 0x00FF)
-    // ----------------------------------------------------------
     table_E[0x9E] = [this](uint16_t op){ SKP(op); };
     table_E[0xA1] = [this](uint16_t op){ SKNP(op); };
 
-    // ----------------------------------------------------------
     // table_F — lower byte (op & 0x00FF)
-    // ----------------------------------------------------------
     table_F[0x07] = [this](uint16_t op){ LD_VX_DT(op); };
     table_F[0x0A] = [this](uint16_t op){ LD_VX_KEY(op); };
     table_F[0x15] = [this](uint16_t op){ LD_DT_VX(op); };
@@ -93,24 +92,14 @@ void Chip8::init_tables() {
 }
 
 void Chip8::cycle(){
-    constexpr int instructionsPerFrame = 10;
-
-    // --- TEMPORARY DIAGNOSTIC TRACE: remove once the freeze is found ---
-    static int frameCount = 0;
-    bool trace = (frameCount++ < 3);
-    if (trace) { printf("[cycle %d] start, PC=%04X\n", frameCount, PC); fflush(stdout); }
-    // -------------------------------------------------------------------
+    constexpr int instructionsPerFrame = 20;
 
     for (int i = 0; i < instructionsPerFrame; ++i) {
         uint16_t opcode = fetch();
-        if (trace) { printf("[cycle %d]   fetched %04X, PC now %04X\n", frameCount, opcode, PC); fflush(stdout); }
         execute(opcode);
-        if (trace) { printf("[cycle %d]   executed %04X ok\n", frameCount, opcode); fflush(stdout); }
     }
 
-    if (trace) { printf("[cycle %d] rendering...\n", frameCount); fflush(stdout); }
     screen.render(displayBuffer);
-    if (trace) { printf("[cycle %d] render done\n", frameCount); fflush(stdout); }
 }
 
 void Chip8::loadROM(const std::string& path){
@@ -125,20 +114,34 @@ void Chip8::loadROM(const std::string& path){
     rom.read(reinterpret_cast<char*>(memory.data() + 0x200), size);
 }
 
-void Chip8::execute(uint16_t opcode){
+void Chip8::execute(uint16_t opcode) {
     table_main[(opcode >> 12) & 0xF](opcode);
 }
 
-void Chip8::dispatch_0(uint16_t op){
+void Chip8::dispatch_0(uint16_t op) {
+    table_0[op & 0x00FF](op);
 }
 
-void Chip8::dispatch_8(uint16_t op){ table_8[op & 0x000F](op); }
-void Chip8::dispatch_E(uint16_t op){ table_E[op & 0x00FF](op); }
-void Chip8::dispatch_F(uint16_t op){ table_F[op & 0x00FF](op); }
+void Chip8::dispatch_8(uint16_t op) { 
+    table_8[op & 0x000F](op);
+}
 
-// ---------------------------------------------------------------------------
-// Primary opcodes
-// ---------------------------------------------------------------------------
+void Chip8::dispatch_E(uint16_t op) {
+    table_E[op & 0x00FF](op);
+}
+
+void Chip8::dispatch_F(uint16_t op) {
+    table_F[op & 0x00FF](op);
+}
+
+void Chip8::CLS(uint16_t op){
+    displayBuffer.fill(0);
+}
+
+void Chip8::RET(uint16_t op){
+    --SP;
+    PC = stack[SP];
+}
 
 void Chip8::JP(uint16_t op) { 
     PC = op & 0x0FFF; 
@@ -253,9 +256,7 @@ void Chip8::DRW(uint16_t op) {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Group 8 — register operations
-// ---------------------------------------------------------------------------
 
 void Chip8::LD_VX_VY(uint16_t op) {
     uint8_t x = (op >> 8) & 0xF;
@@ -326,9 +327,7 @@ void Chip8::SHL(uint16_t op) {
     V[x] <<= 1;
 }
 
-// ---------------------------------------------------------------------------
 // Group E — key input
-// ---------------------------------------------------------------------------
 
 void Chip8::SKP(uint16_t op) {
     uint8_t x = (op >> 8) & 0xF;
@@ -341,9 +340,7 @@ void Chip8::SKNP(uint16_t op) {
     if (!keys[V[x]]) PC += 2;
 }
 
-// ---------------------------------------------------------------------------
 // Group F — misc
-// ---------------------------------------------------------------------------
 
 void Chip8::LD_VX_DT(uint16_t op) {
     uint8_t x = (op >> 8) & 0xF;
@@ -414,10 +411,6 @@ void Chip8::LOAD_REGS(uint16_t op) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// VirtualMachine interface
-// ---------------------------------------------------------------------------
-
 void Chip8::updateTimers() {
     if (DT > 0) --DT;
     if (ST > 0) --ST;
@@ -429,11 +422,6 @@ void Chip8::keyDown(uint8_t key) {
 void Chip8::keyUp(uint8_t key) {
     if (key < keys.size()) keys[key] = false;
 }
-
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
 
 uint16_t Chip8::fetch(){
     uint16_t opcode = (static_cast<uint16_t>(memory[PC]) << 8) | memory[PC + 1];

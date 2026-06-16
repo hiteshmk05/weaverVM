@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(raylib CONFIG REQUIRED)
+find_package(SDL2 REQUIRED CONFIG)
 
 add_executable(weaver-vm
     src/main.cpp
@@ -22,5 +22,11 @@ target_include_directories(weaver-vm
 
 target_link_libraries(weaver-vm
     PRIVATE
-        raylib
+        SDL2::SDL2
+)
+
+add_custom_command(TARGET weaver-vm POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:SDL2::SDL2>
+        $<TARGET_FILE_DIR:weaver-vm>
 )
