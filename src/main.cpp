@@ -7,12 +7,12 @@ int main() {
     try {
         weaver::chip8::Chip8 chip8;
         weaver::input::Input input;
-        printf("chip8 constructed ok\n"); fflush(stdout);
 
-        chip8.loadROM("../roms/digits.ch8");
-        printf("rom loaded ok\n"); fflush(stdout);
+        chip8.loadROM("../roms/Pong.ch8");
 
         while (!chip8.shouldClose()) {
+            input.update();
+
             for (const auto& mapping : weaver::chip8::KEYMAP) {
                 if (input.pressed(mapping.physical))  chip8.keyDown(mapping.chip8Key);
                 if (input.released(mapping.physical)) chip8.keyUp(mapping.chip8Key);
